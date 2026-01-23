@@ -1,0 +1,17 @@
+{
+"type": "FeatureCollection",
+"name": "CampAreas",
+"crs": { "type": "name", "properties": { "name": "urn:ogc:def:crs:OGC:1.3:CRS84" } },
+"features": [
+{ "type": "Feature", "properties": { "AreaName": "KING'S OCEAN" }, "geometry": { "type": "MultiPoint", "coordinates": [ [ 174.473374476402967, -35.509918080432932 ] ] } },
+{ "type": "Feature", "properties": { "AreaName": "KINGS CLIFF" }, "geometry": { "type": "MultiPoint", "coordinates": [ [ 174.472066725574706, -35.508678446136116 ] ] } },
+{ "type": "Feature", "properties": { "AreaName": "KINGS BAYOU" }, "geometry": { "type": "MultiPoint", "coordinates": [ [ 174.471508196115082, -35.509507480911921 ] ] } },
+{ "type": "Feature", "properties": { "AreaName": "KING'S RIVERSIDE" }, "geometry": { "type": "MultiPoint", "coordinates": [ [ 174.471482571171833, -35.511002400362614 ] ] } },
+{ "type": "Feature", "properties": { "AreaName": "BARRON'S SOUTH" }, "geometry": { "type": "MultiPoint", "coordinates": [ [ 174.469763221204204, -35.506779426689384 ] ] } },
+{ "type": "Feature", "properties": { "AreaName": "BARRON'S VALLEY" }, "geometry": { "type": "MultiPoint", "coordinates": [ [ 174.469336547378703, -35.505764959294503 ] ] } },
+{ "type": "Feature", "properties": { "AreaName": "BARRON'S CLIFF" }, "geometry": { "type": "MultiPoint", "coordinates": [ [ 174.46900536733898, -35.504869076016405 ] ] } },
+{ "type": "Feature", "properties": { "AreaName": "KING'S BEACH" }, "geometry": { "type": "MultiPoint", "coordinates": [ [ 174.47451620583422, -35.508405741135199 ] ] } },
+{ "type": "Feature", "properties": { "AreaName": "ESTUARY" }, "geometry": { "type": "MultiPoint", "coordinates": [ [ 174.472139736689797, -35.512638541971903 ] ] } },
+{ "type": "Feature", "properties": { "AreaName": "BARRON'S BEACH" }, "geometry": { "type": "MultiPoint", "coordinates": [ [ 174.47114915024963, -35.504470272859002 ] ] } }
+]
+}

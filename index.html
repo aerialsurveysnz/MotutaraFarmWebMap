@@ -1,0 +1,340 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8" />
+  <title>Mapbox GeoJSON Layer</title>
+  <meta name="viewport" content="initial-scale=1,maximum-scale=1,user-scalable=no" />
+  <script src="https://api.mapbox.com/mapbox-gl-js/v2.4.1/mapbox-gl.js"></script>
+  <link href="https://api.mapbox.com/mapbox-gl-js/v2.4.1/mapbox-gl.css" rel="stylesheet" />
+  <style>
+    body { margin: 0; padding: 0; }
+    #map { position: absolute; top: 0; bottom: 0; width: 100%; }
+
+    .amenity-control {
+      background: #fff;
+      border-radius: 6px;
+      padding: 10px;
+      font: 12px/1.2 sans-serif;
+      box-shadow: 0 1px 4px rgba(0,0,0,0.2);
+      max-width: 190px;
+    }
+    .amenity-control .title {
+      font-weight: 600;
+      margin-bottom: 8px;
+    }
+    .amenity-control label {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      margin: 6px 0;
+      cursor: pointer;
+      user-select: none;
+    }
+    .amenity-control img {
+      width: 18px;
+      height: 18px;
+      object-fit: contain;
+    }
+    .amenity-control .row {
+      display: flex;
+      gap: 6px;
+      margin-top: 8px;
+    }
+    .amenity-control button {
+      flex: 1;
+      padding: 6px 8px;
+      border: 1px solid #ddd;
+      background: #f7f7f7;
+      border-radius: 4px;
+      cursor: pointer;
+    }
+    .amenity-control button:hover { background: #eee; }
+  </style>
+</head>
+<body>
+  <div id="map"></div>
+
+  <script>
+    mapboxgl.accessToken = 'pk.eyJ1IjoiamFtZXMtbWNrZW56aWUtYXNsIiwiYSI6ImNsaHBtYXo1aDA4MWczZ281bXJhbnc0dGMifQ.8pxJxAy6HV0CQfuibaIFmw';
+
+    // --- Amenity list for the top-left "active key" ---
+    const AMENITIES = [
+      { label: "Office",    value: "Office",    icon: "Data/icons/Office.png" },
+      { label: "WiFi",      value: "WiFi",      icon: "Data/icons/WIFi.png" },
+      { label: "Charging",  value: "Charging",  icon: "Data/icons/Charging.png" },
+      { label: "Rubbish",   value: "Rubbish",   icon: "Data/icons/Rubbish.png" },
+      { label: "Recycling", value: "Recycling", icon: "Data/icons/Recycling.png" },
+      { label: "Showers",   value: "Showers",   icon: "Data/icons/Shower.png" },
+      { label: "Toilets",   value: "Toilets",   icon: "Data/icons/Toilet.png" },
+      { label: "Water",     value: "Water",     icon: "Data/icons/Water.png" }
+    ];
+
+    function buildAmenityFilterControl() {
+      class AmenityControl {
+        onAdd(map) {
+          this._map = map;
+          this._container = document.createElement("div");
+          this._container.className = "mapboxgl-ctrl amenity-control";
+
+          const title = document.createElement("div");
+          title.className = "title";
+          title.textContent = "Amenities";
+          this._container.appendChild(title);
+
+          // Default: all selected
+          const selected = new Set(AMENITIES.map(a => a.value));
+
+          const applyFilter = () => {
+            const vals = Array.from(selected);
+
+            if (!map.getLayer("site-icons")) return; // safety
+
+            if (vals.length === 0) {
+              // show nothing
+              map.setFilter("site-icons", ["==", ["get", "Type"], "__none__"]);
+              return;
+            }
+
+            map.setFilter("site-icons", ["in", ["get", "Type"], ["literal", vals]]);
+          };
+
+          // Build checkbox list
+          AMENITIES.forEach(a => {
+            const label = document.createElement("label");
+
+            const cb = document.createElement("input");
+            cb.type = "checkbox";
+            cb.checked = true;
+
+            cb.addEventListener("change", () => {
+              if (cb.checked) selected.add(a.value);
+              else selected.delete(a.value);
+              applyFilter();
+            });
+
+            const img = document.createElement("img");
+            img.src = a.icon;
+            img.alt = a.label;
+
+            const span = document.createElement("span");
+            span.textContent = a.label;
+
+            label.appendChild(cb);
+            label.appendChild(img);
+            label.appendChild(span);
+
+            this._container.appendChild(label);
+          });
+
+          // Buttons: All / None
+          const row = document.createElement("div");
+          row.className = "row";
+
+          const allBtn = document.createElement("button");
+          allBtn.type = "button";
+          allBtn.textContent = "All";
+          allBtn.onclick = () => {
+            selected.clear();
+            AMENITIES.forEach(a => selected.add(a.value));
+            this._container.querySelectorAll('input[type="checkbox"]').forEach(cb => cb.checked = true);
+            applyFilter();
+          };
+
+          const noneBtn = document.createElement("button");
+          noneBtn.type = "button";
+          noneBtn.textContent = "None";
+          noneBtn.onclick = () => {
+            selected.clear();
+            this._container.querySelectorAll('input[type="checkbox"]').forEach(cb => cb.checked = false);
+            applyFilter();
+          };
+
+          row.appendChild(allBtn);
+          row.appendChild(noneBtn);
+          this._container.appendChild(row);
+
+          // Apply once
+          applyFilter();
+
+          return this._container;
+        }
+
+        onRemove() {
+          this._container.parentNode.removeChild(this._container);
+          this._map = undefined;
+        }
+      }
+
+      return new AmenityControl();
+    }
+
+    const map = new mapboxgl.Map({
+      container: 'map',
+      style: 'mapbox://styles/mapbox/satellite-streets-v12',
+      center: [174.469, -35.508],
+      zoom: 16,
+      maxZoom: 19
+    });
+
+    map.on('load', function () {
+
+      // ---- HIRES RASTER OVERLAY ----
+      map.addSource('hires', {
+        type: 'raster',
+        tiles: ['/Data/Tiles/{z}/{x}/{y}.png'],
+        tileSize: 256,
+        scheme: 'tms'
+      });
+
+      map.addLayer({
+        id: 'hires-overlay',
+        type: 'raster',
+        source: 'hires',
+        minzoom: 16,
+        maxzoom: 19, // match your generated max zoom
+        paint: {
+          'raster-opacity': [
+            'interpolate', ['linear'], ['zoom'],
+            16, 1,
+            17, 1
+          ]
+        }
+      });
+
+      // Log tile loading errors
+      map.on('error', (e) => {
+        if (e?.error?.message) console.log('Map error:', e.error.message);
+      });
+
+      // ---- YOUR EXISTING VECTORS/POINTS ----
+      map.addSource('ProjectArea1', { type: 'geojson', data: 'Data/CampRoad.geojson' });
+      map.addLayer({
+        id: 'ProjectLayer1',
+        type: 'fill',
+        source: 'ProjectArea1',
+        paint: { 'fill-color': '#FFFF00', 'fill-opacity': 0.5 }
+      });
+
+      map.addSource('ProjectCentre1', { type: 'geojson', data: 'Data/SiteNumbers.geojson' });
+      map.addLayer({
+        id: 'PCentre1-circle',
+        type: 'circle',
+        source: 'ProjectCentre1',
+        paint: { 'circle-radius': 6, 'circle-color': 'white', 'circle-opacity': 0.0 }
+      });
+
+      map.addLayer({
+        id: 'PCentre1-label',
+        type: 'symbol',
+        source: 'ProjectCentre1',
+        layout: {
+          'text-field': ['to-string', ['get', 'SiteNum']],
+          'text-size': [
+            "interpolate", ["linear"], ["zoom"],
+            15, 0,
+            16, 12,
+            18, 13,
+            20, 16
+          ],
+          'text-offset': [0, 1.0],
+          'text-anchor': 'top',
+          'text-allow-overlap': true
+        },
+
+        paint: { 'text-color': '#111', 'text-halo-color': '#fff', 'text-halo-width': 1.2 }
+      });
+
+            map.addSource('ProjectCentre2', { type: 'geojson', data: 'Data/CampAreas.geojson' });
+      map.addLayer({
+        id: 'PCentre2-circle',
+        type: 'circle',
+        source: 'ProjectCentre2',
+        paint: { 'circle-radius': 6, 'circle-color': 'white', 'circle-opacity': 0.0 }
+      });
+
+            map.addLayer({
+        id: 'PCentre2-label',
+        type: 'symbol',
+        source: 'ProjectCentre2',
+        layout: {
+          'text-field': ['to-string', ['get', 'AreaName']],
+          'text-size': [
+            "interpolate", ["linear"], ["zoom"],
+            12, 0,
+            16, 14,
+            18, 15,
+            20, 16
+          ],
+          'text-font': ['Open Sans Bold', 'Arial Unicode MS Bold'],
+          'text-offset': [0, 1.0],
+          'text-anchor': 'top',
+          'text-allow-overlap': true
+        },
+        paint: { 'text-color': '#fff', 'text-halo-color': '#111', 'text-halo-width': 1.0 }
+      });
+
+      map.addSource('amenities', { type: 'geojson', data: 'Data/Amenities.geojson' });
+
+      const icons = [
+        { name: 'icon-office',   url: 'Data/icons/Office.png' },
+        { name: 'icon-wifi',     url: 'Data/icons/WIFi.png' },
+        { name: 'icon-charging', url: 'Data/icons/Charging.png' },
+        { name: 'icon-rubbish',  url: 'Data/icons/Rubbish.png' },
+        { name: 'icon-recycling',url: 'Data/icons/Recycling.png' },
+        { name: 'icon-shower',   url: 'Data/icons/Shower.png' },
+        { name: 'icon-toilet',   url: 'Data/icons/Toilet.png' },
+        { name: 'icon-water',    url: 'Data/icons/Water.png' }
+      ];
+
+      let remaining = icons.length;
+
+      icons.forEach(({ name, url }) => {
+        map.loadImage(url, (err, img) => {
+          if (err) {
+            console.error('Icon load failed:', name, url, err);
+            return;
+          }
+          if (!map.hasImage(name)) map.addImage(name, img);
+
+          remaining--;
+          if (remaining === 0) {
+            map.addLayer({
+              id: 'site-icons',
+              type: 'symbol',
+              source: 'amenities',
+              layout: {
+                'icon-image': [
+                  'match',
+                  ['get', 'Type'],
+                  'Office', 'icon-office',
+                  'WiFi', 'icon-wifi',
+                  'Charging', 'icon-charging',
+                  'Rubbish', 'icon-rubbish',
+                  'Recycling', 'icon-recycling',
+                  'Showers', 'icon-shower',
+                  'Toilets', 'icon-toilet',
+                  'Water', 'icon-water',
+                  '' // fallback
+                ],
+                "icon-size": [
+                  "interpolate", ["linear"], ["zoom"],
+                  15, 0,
+                  16, 0.1,
+                  20, 0.40
+                ],
+                'icon-allow-overlap': true
+              },
+              // start with all amenities visible
+              filter: ['in', ['get', 'Type'], ['literal', AMENITIES.map(a => a.value)]]
+            });
+
+            // ✅ Add the "active key" control AFTER the site-icons layer exists
+            map.addControl(buildAmenityFilterControl(), "top-left");
+          }
+        });
+      });
+
+    });
+  </script>
+</body>
+</html>
