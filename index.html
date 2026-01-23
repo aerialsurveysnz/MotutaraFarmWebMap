@@ -59,14 +59,14 @@
 
     // --- Amenity list for the top-left "active key" ---
     const AMENITIES = [
-      { label: "Office",    value: "Office",    icon: "Data/icons/Office.png" },
-      { label: "WiFi",      value: "WiFi",      icon: "Data/icons/WiFi.png" },
-      { label: "Charging",  value: "Charging",  icon: "Data/icons/Charging.png" },
-      { label: "Rubbish",   value: "Rubbish",   icon: "Data/icons/Rubbish.png" },
-      { label: "Recycling", value: "Recycling", icon: "Data/icons/Recycling.png" },
-      { label: "Showers",   value: "Showers",   icon: "Data/icons/Shower.png" },
-      { label: "Toilets",   value: "Toilets",   icon: "Data/icons/Toilet.png" },
-      { label: "Water",     value: "Water",     icon: "Data/icons/Water.png" }
+      { label: "Office",    value: "Office",    icon: "../Data/icons/Office.png" },
+      { label: "WiFi",      value: "WiFi",      icon: "../Data/icons/WiFi.png" },
+      { label: "Charging",  value: "Charging",  icon: "../Data/icons/Charging.png" },
+      { label: "Rubbish",   value: "Rubbish",   icon: "../Data/icons/Rubbish.png" },
+      { label: "Recycling", value: "Recycling", icon: "../Data/icons/Recycling.png" },
+      { label: "Showers",   value: "Showers",   icon: "../Data/icons/Shower.png" },
+      { label: "Toilets",   value: "Toilets",   icon: "../Data/icons/Toilet.png" },
+      { label: "Water",     value: "Water",     icon: "../Data/icons/Water.png" }
     ];
 
     function buildAmenityFilterControl() {
@@ -181,7 +181,7 @@
       // ---- HIRES RASTER OVERLAY ----
       map.addSource('hires', {
         type: 'raster',
-        tiles: ['/Data/Tiles/{z}/{x}/{y}.png'],
+        tiles: ['../Data/Tiles/{z}/{x}/{y}.png'],
         tileSize: 256,
         scheme: 'tms'
       });
