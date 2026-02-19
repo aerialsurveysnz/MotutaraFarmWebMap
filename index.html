@@ -55,7 +55,7 @@
   <div id="map"></div>
 
   <script>
-    mapboxgl.accessToken = 'pk.eyJ1IjoiamFtZXMtbWNrZW56aWUtYXNsIiwiYSI6ImNsaHBtYXo1aDA4MWczZ281bXJhbnc0dGMifQ.8pxJxAy6HV0CQfuibaIFmw';
+   mapboxgl.accessToken = 'pk.eyJ1IjoiamFtZXMtbWNrZW56aWUtYXNsIiwiYSI6ImNsaHBtYXo1aDA4MWczZ281bXJhbnc0dGMifQ.8pxJxAy6HV0CQfuibaIFmw';
 
     // --- Amenity list for the top-left "active key" ---
     const AMENITIES = [
@@ -328,7 +328,7 @@
               filter: ['in', ['get', 'Type'], ['literal', AMENITIES.map(a => a.value)]]
             });
 
-            // ✅ Add the "active key" control AFTER the site-icons layer exists
+            // Add the "active key" control AFTER the site-icons layer exists
             map.addControl(buildAmenityFilterControl(), "top-right");
           }
         });
